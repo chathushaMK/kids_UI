@@ -9,6 +9,96 @@
         <h2>  </h2>
         <h3> </h3>
         <h1>    </h1>
-    </body>
+    <!doctype html>
+    <html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>KI</title>
+        <style>
+            :root{--bg:#fffbf0;--card:#fff;--accent:#ff7ab6}
+            body{font-family:system-ui,-apple-system,Segoe UI,Roboto,"Helvetica Neue",Arial;margin:0;background:var(--bg);color:#222}
+            header{padding:32px 20px;text-align:center}
+            h1{margin:0;font-size:2.2rem;color:var(--accent)}
+            p.lead{margin:8px 0 0;color:#666}
+            .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;padding:20px;max-width:900px;margin:20px auto}
+            .card{background:var(--card);border-radius:12px;padding:18px;box-shadow:0 6px 18px rgba(0,0,0,0.06);text-align:center;cursor:pointer;transition:transform .18s ease,box-shadow .18s ease}
+            .card:active{transform:translateY(2px)}
+            .card .emoji{font-size:2.6rem;display:block}
+            .card h3{margin:10px 0 6px;font-size:1.05rem}
+            .card p{margin:0;color:#666;font-size:.9rem}
+            .card.highlight{box-shadow:0 12px 30px rgba(255,122,182,0.18);transform:translateY(-6px)}
+            footer{text-align:center;padding:24px;color:#888;font-size:.9rem}
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>KI</h1>
+            <p class="lead">A simple kid-friendly UI — tap a card to play and highlight it.</p>
+        </header>
 
-</html>
+        <main>
+            <section class="grid" id="grid">
+                <div class="card" data-sound="C4">
+                    <span class="emoji">🐶</span>
+                    <h3>Dog</h3>
+                    <p>Woof! Tap me.</p>
+                </div>
+                <div class="card" data-sound="E4">
+                    <span class="emoji">🐱</span>
+                    <h3>Cat</h3>
+                    <p>Meow! Tap me.</p>
+                </div>
+                <div class="card" data-sound="G4">
+                    <span class="emoji">🦊</span>
+                    <h3>Fox</h3>
+                    <p>Click for fun.</p>
+                </div>
+                <div class="card" data-sound="C5">
+                    <span class="emoji">🦁</span>
+                    <h3>Lion</h3>
+                    <p>Roar! Tap me.</p>
+                </div>
+            </section>
+        </main>
+
+        <footer>
+            Tip: try tapping different cards.
+        </footer>
+
+        <script>
+            // Small audio feedback using WebAudio oscillators
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const noteFreq = {C4:261.63, E4:329.63, G4:392.00, C5:523.25};
+
+            function playTone(freq){
+                if (!ctx) return;
+                const o = ctx.createOscillator();
+                const g = ctx.createGain();
+                o.type = 'sine';
+                o.frequency.value = freq;
+                g.gain.value = 0.001;
+                o.connect(g); g.connect(ctx.destination);
+                const now = ctx.currentTime;
+                g.gain.linearRampToValueAtTime(0.18, now + 0.02);
+                g.gain.exponentialRampToValueAtTime(0.0001, now + 0.5);
+                o.start(now);
+                o.stop(now + 0.6);
+            }
+
+            document.getElementById('grid').addEventListener('click', e => {
+                const card = e.target.closest('.card');
+                if (!card) return;
+                // visual
+                document.querySelectorAll('.card').forEach(c => c.classList.remove('highlight'));
+                card.classList.add('highlight');
+                // audio
+                const note = card.dataset.sound;
+                const freq = noteFreq[note] || 440;
+                // resume context on user gesture if suspended
+                if (ctx.state === 'suspended') ctx.resume();
+                playTone(freq);
+            });
+        </script>
+    </body>
+    </html>
